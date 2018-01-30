@@ -18,8 +18,7 @@ clean:
 	rm -rf $(BUILD) $(DIST)
 
 dev:
-	echo 'Open http://localhost:4002'
-	@$(BIN)/webpack-dev-server --config webpack-dev-server.config.js --hot --progress --colors --port 4002 --content-base .
+	@$(BIN)/webpack-dev-server --config webpack-dev-server.config.js --hot --progress --colors --port 4002 --open --content-base .
 
 # Allows usage of `make install`, `make link`
 install link:
@@ -34,8 +33,11 @@ build-js:
 	@$(BIN)/babel --stage 0 --out-dir $(BUILD) $(LIB)
 
 build-example:
-	webpack --config webpack-examples.config.js
+	@$(BIN)/webpack --config webpack-examples.config.js
 	node ./examples/generate.js
+
+view-example: build-example
+	@$(BIN)/opener examples/0-showcase.html
 
 # Copy original source as `.js.flow` for use with flow
 copy-flow:
@@ -51,20 +53,20 @@ copy-flow:
 
 # FIXME flow is usually global
 lint:
-	flow
+	./node_modules/.bin/flow
 	@$(BIN)/eslint --ext .js,.jsx $(LIB) $(TEST)
 	@$(BIN)/valiquire $(LIB)
 
 test:
 	@$(BIN)/jest
 
-release-patch: build
+release-patch: build lint test
 	@$(call release,patch)
 
-release-minor: build
+release-minor: build lint test
 	@$(call release,minor)
 
-release-major: build
+release-major: build lint test
 	@$(call release,major)
 
 publish:
